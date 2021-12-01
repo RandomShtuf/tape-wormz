@@ -14,6 +14,7 @@ from pygame.locals import *
 class game:
     def __init__(self, WINDOW_SIZE, high_score):
         pygame.init()
+        pygame.mixer.pre_init(44100, -16, 2, 512)
         self.clock = pygame.time.Clock()
         self.WINDOW_SIZE = WINDOW_SIZE
         self.window = pygame.display.set_mode(self.WINDOW_SIZE, 0, 32)
@@ -33,6 +34,10 @@ class game:
         # time.sleep(1.00)
         SCREEN_WIDTH = 320
         SCREEN_HEIGHT = 200
+
+        # sounds
+        input_sound = pygame.mixer.Sound('data/SFX/input.wav')
+
         font = pygame.font.SysFont('dejavusans', 100, True)
         score_font = pygame.font.SysFont('dejavusans', 8, True)
         again_font = pygame.font.SysFont('dejavusans', 16, True)
@@ -69,6 +74,7 @@ class game:
                     sys.exit()
                 if event.type == KEYDOWN:
                     if event.key == K_y:
+                        input_sound.play()
                         self.update_score()
                         self.run()
                     if event.key == K_n:
@@ -94,8 +100,10 @@ class game:
         snake_pos = [0]*length
         snake_x[0] = 160
         snake_y[0] = 104
+        snake_pos[0] = (snake_x[0], snake_y[0])
         snake_x[1] = -16
         snake_y[1] = -16
+        snake_pos[1] = (snake_x[1], snake_y[1])
         rotation = [0]*length
         rotation[0] = 'right'
         rotation[1] = 'right'
@@ -189,6 +197,12 @@ class game:
         snake_frame = 0
         wall_frame = 0
 
+        # sounds
+        input_sound = pygame.mixer.Sound('data/SFX/input.wav')
+        worm_eat = pygame.mixer.Sound('data/SFX/worm-eat.wav')
+        eat_bogir = pygame.mixer.Sound('data/SFX/eat-bogir.wav')
+        worm_dead = pygame.mixer.Sound('data/SFX/worm-dead.wav')
+
         # things for recording score
         font = pygame.font.SysFont('dejavusans', 8, True)
         score = font.render(
@@ -212,6 +226,7 @@ class game:
             return game_map
 
         game_map = load_map('data/map.txt')
+        # game_map = []
         # print(str(game_map))
 
         def collision_test(rect, other_rects):
@@ -350,31 +365,37 @@ class game:
                     sys.exit()
                 if event.type == KEYDOWN:
                     if event.key == K_ESCAPE:
+                        input_sound.play()
                         oof = True
                     if add_x == 0:
                         if event.key == K_d or event.key == K_RIGHT:
+                            input_sound.play()
                             add_x = SNAKE_SIZE
                             add_y = 0
                             rotation[0] = 'right'
                             move_time = max_move_time
                         if event.key == K_a or event.key == K_LEFT:
+                            input_sound.play()
                             add_x = -SNAKE_SIZE
                             add_y = 0
                             rotation[0] = 'left'
                             move_time = max_move_time
                     if add_y == 0:
                         if event.key == K_w or event.key == K_UP:
+                            input_sound.play()
                             add_x = 0
                             add_y = -SNAKE_SIZE
                             rotation[0] = 'up'
                             move_time = max_move_time
                         if event.key == K_s or event.key == K_DOWN:
+                            input_sound.play()
                             add_x = 0
                             add_y = SNAKE_SIZE
                             rotation[0] = 'down'
                             move_time = max_move_time
 
             if player_rect.colliderect(food_rect):
+                worm_eat.play()
                 bogir_rect.x = -16
                 bogir_rect.y = -16
                 food_rect.x = -16
@@ -401,6 +422,7 @@ class game:
                 )
 
             if player_rect.colliderect(bogir_rect):
+                eat_bogir.play()
                 bogir_rect.x = -16
                 bogir_rect.y = -16
                 food_rect.x = -16
@@ -437,39 +459,28 @@ class game:
             if move_time >= max_move_time:
                 move_time = 0
 
-                for i in range(length-1, 0, -1):
-                    snake_x[i] = snake_x[i - 1]
-                    snake_y[i] = snake_y[i - 1]
-                    snake_pos[i] = (snake_x[i], snake_y[i])
-                    rotation[i] = rotation[i - 1]
+                snake_pos, rotation = self.s.move(
+                    length,
+                    snake_x,
+                    snake_y,
+                    add_x,
+                    add_y,
+                    snake_pos,
+                    rotation
+                )
 
-                snake_x[0] += add_x
-                snake_y[0] += add_y
-                snake_pos[0] = (snake_x[0], snake_y[0])
-
-                for i in range(len(body_rects)):
-                    body_rects[i].x = snake_pos[i + 2][0]
-                    body_rects[i].y = snake_pos[i + 2][1]
+            self.s.update_body_rects(body_rects, snake_pos)
 
             collision_list = []
-            collision_list = collision_test(player_rect, body_rects)
             wall_collisions = []
+            collision_list = collision_test(player_rect, body_rects)
             wall_collisions = collision_test(player_rect, wall_rects)
             if collision_list != [] or wall_collisions != []:
+                worm_dead.play()
                 snake_pos[0] = snake_pos[1]
                 oof = True
                 # print(str(collision_list))
                 # print(str(wall_collisions))
-
-            if snake_x[0] < 0:
-                snake_x[0] = 39*8
-            if snake_x[0] >= 40*8:
-                snake_x[0] = 0
-            if snake_y[0] < 0:
-                snake_y[0] = 24*8
-            if snake_y[0] >= 25*8:
-                snake_y[0] = 0
-
             food_pos = (food_x, food_y)
             self.f.draw(food_pos, food_id)
 
@@ -480,7 +491,7 @@ class game:
                     self.s.draw(snake_pos[i], rotation[i], head_img)
 
             # for i in range(len(body_rects)):
-                # pygame.draw.rect(self.screen, (255, 0, 0), body_rects[i])
+            #     pygame.draw.rect(self.screen, (255, 0, 0), body_rects[i])
 
             player_rect.x = snake_x[0]
             player_rect.y = snake_y[0]
