@@ -113,6 +113,8 @@ class game:
         add_y = 0
         move_time = 5
         max_move_time = 5
+        max_move_time_copy = max_move_time
+        speed_boost_time = 0
 
         # things for drawing the food
         food_x = random.randint(2, 38)*8
@@ -252,6 +254,12 @@ class game:
                     SNAKE_SIZE
                 )
             )
+
+        def speed_boost(max_move_time):
+            max_move_time_copy = max_move_time
+            new_max_move_time = 0
+
+            return max_move_time_copy, new_max_move_time
 
         while True:
             self.screen.fill((0, 15, 20))
@@ -396,6 +404,11 @@ class game:
 
             if player_rect.colliderect(food_rect):
                 worm_eat.play()
+                if food_id == 3:
+                    max_move_time_copy, max_move_time = speed_boost(
+                        max_move_time
+                    )
+                    speed_boost_time = 180
                 bogir_rect.x = -16
                 bogir_rect.y = -16
                 food_rect.x = -16
@@ -454,6 +467,10 @@ class game:
                 max_move_time = 2.5
             if length == 35:
                 max_move_time = 0
+
+            speed_boost_time -= 1
+            if speed_boost_time <= 0:
+                max_move_time = max_move_time_copy
 
             move_time += 1
             if move_time >= max_move_time:
