@@ -2,6 +2,7 @@
 import pygame
 import sys
 import random
+import time
 import data.snake as S
 import data.food as F
 import data.animation as A
@@ -257,14 +258,22 @@ class game:
 
         def speed_boost(max_move_time):
             max_move_time_copy = max_move_time
-            new_max_move_time = 0
+            new_max_move_time = 1
 
             return max_move_time_copy, new_max_move_time
 
+        # delta time
+        last_time = time.time()
+
         while True:
+            dt = time.time() - last_time
+            dt *= 62
+            # dt = 1
+            last_time = time.time()
+
             self.screen.fill((0, 15, 20))
 
-            snake_frame += 1
+            snake_frame += int(1*dt)
             if snake_frame >= len(animation_database['snake_head']):
                 snake_frame = 0
 
@@ -282,7 +291,7 @@ class game:
             ]
             snake_img = self.a.animation_frames[snake_img_id]
 
-            wall_frame += 1
+            wall_frame += int(1*dt)
             # used wall_corner because all walls have same frame count
             if wall_frame >= len(animation_database['wall_corner']):
                 wall_frame = 0
@@ -463,16 +472,16 @@ class game:
                     (255, 255, 255)
                 )
 
-            if length == 15:
-                max_move_time = 2.5
-            if length == 35:
-                max_move_time = 0
+            # if length == 15:
+            #     max_move_time = 2.5
+            # if length == 35:
+            #     max_move_time = 0
 
             speed_boost_time -= 1
             if speed_boost_time <= 0:
                 max_move_time = max_move_time_copy
 
-            move_time += 1
+            move_time += 1*dt
             if move_time >= max_move_time:
                 move_time = 0
 
@@ -483,7 +492,7 @@ class game:
                     add_x,
                     add_y,
                     snake_pos,
-                    rotation
+                    rotation,
                 )
 
             self.s.update_body_rects(body_rects, snake_pos)
