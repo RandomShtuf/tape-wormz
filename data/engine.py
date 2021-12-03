@@ -413,30 +413,37 @@ class game:
 
             if player_rect.colliderect(food_rect):
                 worm_eat.play()
+
                 if food_id == 3:
                     max_move_time_copy, max_move_time = speed_boost(
                         max_move_time
                     )
                     speed_boost_time = 180
+
                 bogir_rect.x = -16
                 bogir_rect.y = -16
                 food_rect.x = -16
                 food_rect.y = -16
+
                 food_x = random.randint(2, 38)*8
                 food_y = random.randint(2, 23)*8
+
                 food_category = random.randint(1, 100)
                 if food_category <= 75:
                     food_id = random.randint(1, 3)
                 else:
                     food_id = 4
+
                 if food_id == 4:
                     bogir_rect.x = food_x
                     bogir_rect.y = food_y
                 else:
                     food_rect.x = food_x
                     food_rect.y = food_y
+
                 update_snake_data()
                 length = len(snake_pos)
+
                 score = font.render(
                     'YOUR SCORE : %s' % (length),
                     False,
@@ -445,37 +452,38 @@ class game:
 
             if player_rect.colliderect(bogir_rect):
                 eat_bogir.play()
+
                 bogir_rect.x = -16
                 bogir_rect.y = -16
                 food_rect.x = -16
                 food_rect.y = -16
+
                 food_x = random.randint(2, 38)*8
                 food_y = random.randint(2, 23)*8
+
                 food_category = random.randint(1, 100)
                 if food_category <= 75:
                     food_id = random.randint(1, 3)
                 else:
                     food_id = 4
+
                 if food_id == 4:
                     bogir_rect.x = food_x
                     bogir_rect.y = food_y
                 else:
                     food_rect.x = food_x
                     food_rect.y = food_y
+
                 update_snake_data()
                 update_snake_data()
                 update_snake_data()
                 length = len(snake_pos)
+
                 score = font.render(
                     'YOUR SCORE : %s' % (length),
                     False,
                     (255, 255, 255)
                 )
-
-            # if length == 15:
-            #     max_move_time = 2.5
-            # if length == 35:
-            #     max_move_time = 0
 
             speed_boost_time -= 1
             if speed_boost_time <= 0:
@@ -499,18 +507,21 @@ class game:
 
             collision_list = []
             wall_collisions = []
+
             collision_list = collision_test(player_rect, body_rects)
             wall_collisions = collision_test(player_rect, wall_rects)
+
             if collision_list != [] or wall_collisions != []:
                 worm_dead.play()
                 snake_pos[0] = snake_pos[1]
                 oof = True
                 # print(str(collision_list))
                 # print(str(wall_collisions))
+
             food_pos = (food_x, food_y)
             self.f.draw(food_pos, food_id)
 
-            for i in range(length):
+            for i in range(length-1, -1, -1):
                 if i != 0:
                     self.s.draw(snake_pos[i], rotation[i], snake_img)
                 else:
