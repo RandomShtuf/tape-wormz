@@ -7,6 +7,7 @@ import data.snake as S
 import data.food as F
 import data.animation as A
 import data.walls as W
+import data.menu as M
 # import math
 
 from pygame.locals import *
@@ -25,8 +26,59 @@ class game:
         self.s = S.snake(self.screen)
         self.f = F.food(self.screen)
         self.w = W.wall(self.screen)
+        self.m = M.menu(self.screen)
         self.a = A.animation()
         self.high_score = high_score
+
+    def menu(self):
+        menu_img = pygame.image.load('data/sprites/menu.png')
+        selected = 'none'
+
+        # animations
+        animation_database = {}
+        play_frame_durations = [5]*12
+        frame = 0
+
+        animation_database['play'] = self.a.load_animation(
+            'data/sprites/menu-play',
+            play_frame_durations
+        )
+
+        while True:
+            self.screen.fill((255, 255, 255))
+
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == KEYDOWN:
+                    if event.key == K_ESCAPE:
+                        pygame.quit()
+                        sys.exit()
+                    if event.key == K_1:
+                        selected = 'play'
+
+            if selected == 'play':
+                frame += 1
+                if frame >= len(animation_database['play']):
+                    self.play()
+                play_img_id = animation_database[
+                    'play'
+                ][
+                    frame
+                ]
+                play_img = self.a.animation_frames[
+                    play_img_id
+                ]   
+                self.m.draw(play_img)
+
+            else:
+                self.m.draw(menu_img)
+
+            scale = pygame.transform.scale(self.screen, self.WINDOW_SIZE)
+            self.window.blit(scale, (0, 0))
+            pygame.display.update()
+            self.clock.tick(60)
 
     def update_score(self):
         return self.high_score
@@ -77,11 +129,10 @@ class game:
                     if event.key == K_y:
                         input_sound.play()
                         self.update_score()
-                        self.run()
+                        self.play()
                     if event.key == K_n:
                         self.update_score()
-                        pygame.quit()
-                        sys.exit()
+                        self.menu()
 
             self.screen.blit(death_text, death_text_rect)
             self.screen.blit(again_text, again_text_rect)
@@ -92,7 +143,7 @@ class game:
             pygame.display.update()
             self.clock.tick(60)
 
-    def run(self):
+    def play(self):
         # things for dawing the worm
         SNAKE_SIZE = 8
         length = 3
