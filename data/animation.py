@@ -21,3 +21,15 @@ class animation:
                 animation_frame_data.append(animation_frame_id)
             n += 1
         return animation_frame_data
+
+    def handle_animation(self, animation_database, animation, frame):
+        animation_img_id = animation_database[
+            animation
+        ][
+            frame
+        ]
+        animation_img = self.animation_frames[
+            animation_img_id
+        ]
+
+        return animation_img
