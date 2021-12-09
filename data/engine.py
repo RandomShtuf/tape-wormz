@@ -121,56 +121,6 @@ class game:
             pygame.display.update()
             self.clock.tick(60)
 
-    def menu(self):
-        menu_img = pygame.image.load('data/sprites/menu.png')
-        selected = 'none'
-
-        # animations
-        animation_database = {}
-        play_frame_durations = [5]*12
-        frame = 0
-
-        animation_database['play'] = self.a.load_animation(
-            'data/sprites/menu-play',
-            play_frame_durations
-        )
-
-        while True:
-            self.screen.fill((255, 255, 255))
-
-            for event in pygame.event.get():
-                if event.type == QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if event.type == KEYDOWN:
-                    if event.key == K_ESCAPE:
-                        pygame.quit()
-                        sys.exit()
-                    if event.key == K_1:
-                        selected = 'play'
-
-            if selected == 'play':
-                frame += 1
-                if frame >= len(animation_database['play']):
-                    self.play()
-                play_img_id = animation_database[
-                    'play'
-                ][
-                    frame
-                ]
-                play_img = self.a.animation_frames[
-                    play_img_id
-                ]   
-                self.m.draw(play_img)
-
-            else:
-                self.m.draw(menu_img)
-
-            scale = pygame.transform.scale(self.screen, self.WINDOW_SIZE)
-            self.window.blit(scale, (0, 0))
-            pygame.display.update()
-            self.clock.tick(60)
-
     def update_score(self):
         return self.high_score
 
