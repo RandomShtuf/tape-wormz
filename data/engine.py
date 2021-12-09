@@ -29,6 +29,97 @@ class game:
         self.m = M.menu(self.screen)
         self.a = A.animation()
         self.high_score = high_score
+        self.input_sound = pygame.mixer.Sound('data/SFX/input.wav')
+        self.select_sound = pygame.mixer.Sound('data/SFX/select.wav')
+        self.select_sound.set_volume(0.5)
+
+    def menu(self):
+        menu_img = pygame.image.load('data/sprites/menu.png')
+        selected = 'none'
+
+        # animations
+        animation_database = {}
+        frame_durations = [5]*12
+        frame = 0
+
+        animation_database['play'] = self.a.load_animation(
+            'data/sprites/menu-play',
+            frame_durations
+        )
+
+        animation_database['info'] = self.a.load_animation(
+            'data/sprites/menu-info',
+            frame_durations
+        )
+
+        while True:
+            self.screen.fill((255, 255, 255))
+
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == KEYDOWN:
+                    if event.key == K_ESCAPE:
+                        self.select_sound.play()
+                        pygame.quit()
+                        sys.exit()
+                    if event.key == K_1:
+                        self.select_sound.play()
+                        selected = 'play'
+                    if event.key == K_2:
+                        self.select_sound.play()
+                        selected = 'info'
+
+            if selected == 'play':
+                frame += 1
+                if frame >= len(animation_database['play']):
+                    self.play()
+
+                play_img = self.a.handle_animation(
+                    animation_database,
+                    'play',
+                    frame
+                )
+                self.m.draw(play_img)
+
+            elif selected == 'info':
+                frame += 1
+                if frame >= len(animation_database['info']):
+                    self.menu_info()
+
+                info_img = self.a.handle_animation(
+                    animation_database,
+                    'info',
+                    frame
+                )
+                self.m.draw(info_img)
+
+            else:
+                self.m.draw(menu_img)
+
+            scale = pygame.transform.scale(self.screen, self.WINDOW_SIZE)
+            self.window.blit(scale, (0, 0))
+            pygame.display.update()
+            self.clock.tick(60)
+
+    def menu_info(self):
+
+        while True:
+            self.screen.fill((255, 255, 255))
+
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == KEYDOWN:
+                    if event.key == K_ESCAPE:
+                        self.menu()
+
+            scale = pygame.transform.scale(self.screen, self.WINDOW_SIZE)
+            self.window.blit(scale, (0, 0))
+            pygame.display.update()
+            self.clock.tick(60)
 
     def menu(self):
         menu_img = pygame.image.load('data/sprites/menu.png')
@@ -87,10 +178,6 @@ class game:
         # time.sleep(1.00)
         SCREEN_WIDTH = 320
         SCREEN_HEIGHT = 200
-
-        # sounds
-        input_sound = pygame.mixer.Sound('data/SFX/input.wav')
-
         font = pygame.font.SysFont('dejavusans', 100, True)
         score_font = pygame.font.SysFont('dejavusans', 8, True)
         again_font = pygame.font.SysFont('dejavusans', 16, True)
@@ -127,10 +214,11 @@ class game:
                     sys.exit()
                 if event.type == KEYDOWN:
                     if event.key == K_y:
-                        input_sound.play()
+                        self.input_sound.play()
                         self.update_score()
                         self.play()
                     if event.key == K_n:
+                        self.input_sound.play()
                         self.update_score()
                         self.menu()
 
@@ -252,7 +340,7 @@ class game:
         wall_frame = 0
 
         # sounds
-        input_sound = pygame.mixer.Sound('data/SFX/input.wav')
+        self.input_sound = pygame.mixer.Sound('data/SFX/input.wav')
         worm_eat = pygame.mixer.Sound('data/SFX/worm-eat.wav')
         eat_bogir = pygame.mixer.Sound('data/SFX/eat-bogir.wav')
         worm_dead = pygame.mixer.Sound('data/SFX/worm-dead.wav')
@@ -328,45 +416,40 @@ class game:
             if snake_frame >= len(animation_database['snake_head']):
                 snake_frame = 0
 
-            head_img_id = animation_database[
-                'snake_head'
-            ][
+            head_img = self.a.handle_animation(
+                animation_database,
+                'snake_head',
                 snake_frame
-            ]
-            head_img = self.a.animation_frames[head_img_id]
+            )
 
-            snake_img_id = animation_database[
-                'snake_body'
-            ][
+            snake_img = self.a.handle_animation(
+                animation_database,
+                'snake_body',
                 snake_frame
-            ]
-            snake_img = self.a.animation_frames[snake_img_id]
+            )
 
             wall_frame += int(1*dt)
             # used wall_corner because all walls have same frame count
             if wall_frame >= len(animation_database['wall_corner']):
                 wall_frame = 0
 
-            wall_corner_img_id = animation_database[
-                'wall_corner'
-            ][
+            wall_corner_img = self.a.handle_animation(
+                animation_database,
+                'wall_corner',
                 wall_frame
-            ]
-            wall_corner_img = self.a.animation_frames[wall_corner_img_id]
+            )
 
-            wall_edge1_img_id = animation_database[
-                'wall_edge1'
-            ][
+            wall_edge1_img = self.a.handle_animation(
+                animation_database,
+                'wall_edge1',
                 wall_frame
-            ]
-            wall_edge1_img = self.a.animation_frames[wall_edge1_img_id]
+            )
 
-            wall_edge2_img_id = animation_database[
-                'wall_edge2'
-            ][
+            wall_edge2_img = self.a.handle_animation(
+                animation_database,
+                'wall_edge2',
                 wall_frame
-            ]
-            wall_edge2_img = self.a.animation_frames[wall_edge2_img_id]
+            )
 
             y = 0
             for row in game_map:
@@ -433,30 +516,30 @@ class game:
                     sys.exit()
                 if event.type == KEYDOWN:
                     if event.key == K_ESCAPE:
-                        input_sound.play()
+                        self.input_sound.play()
                         oof = True
                     if add_x == 0:
                         if event.key == K_d or event.key == K_RIGHT:
-                            input_sound.play()
+                            self.input_sound.play()
                             add_x = SNAKE_SIZE
                             add_y = 0
                             rotation[0] = 'right'
                             move_time = max_move_time
                         if event.key == K_a or event.key == K_LEFT:
-                            input_sound.play()
+                            self.input_sound.play()
                             add_x = -SNAKE_SIZE
                             add_y = 0
                             rotation[0] = 'left'
                             move_time = max_move_time
                     if add_y == 0:
                         if event.key == K_w or event.key == K_UP:
-                            input_sound.play()
+                            self.input_sound.play()
                             add_x = 0
                             add_y = -SNAKE_SIZE
                             rotation[0] = 'up'
                             move_time = max_move_time
                         if event.key == K_s or event.key == K_DOWN:
-                            input_sound.play()
+                            self.input_sound.play()
                             add_x = 0
                             add_y = SNAKE_SIZE
                             rotation[0] = 'down'
